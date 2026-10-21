@@ -1,0 +1,683 @@
+{
+  "name": "Cuddler original video, signed callback and file",
+  "nodes": [
+    {
+      "id": "manual-start",
+      "name": "Manual Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "prepare-callback-scope",
+      "name": "Prepare Callback Scope",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackWait",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "operation": "prepareCallbackScope"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        },
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "prepare-original-video",
+      "name": "Prepare Original Video",
+      "type": "n8n-nodes-cuddler.cuddler",
+      "typeVersion": 1,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "resource": "video",
+        "operation": "prepareMedia",
+        "businessBatchId": "REPLACE_WITH_STABLE_BUSINESS_BATCH",
+        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID",
+        "requestBody": "={{ { model: 'REPLACE_WITH_CATALOG_MODEL', prompt: 'REPLACE_WITH_VALIDATED_REQUEST', max_usd: 'REPLACE_WITH_APPROVED_MAX_USD', webhook_url: $json.callbackUrl, metadata: { cuddler_callback_scope: $json.callbackScope } } }}"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        }
+      }
+    },
+    {
+      "id": "execute-original-video",
+      "name": "Execute Original Video",
+      "type": "n8n-nodes-cuddler.cuddler",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "resource": "video",
+        "operation": "executePrepared",
+        "operationHandle": "={{$json.operationHandle}}",
+        "requestBody": "",
+        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        }
+      }
+    },
+    {
+      "id": "register-original-wait",
+      "name": "Register Original Wait",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackWait",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "operation": "registerOriginalWait",
+        "operationHandle": "={{$json.operationHandle}}"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        },
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "first-original-wait",
+      "name": "First Original Wait",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "first",
+              "leftValue": "={{$json.registered}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "original-single-wait",
+      "name": "Original Single Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        -80
+      ],
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "responseCode": 503,
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeUnit": "seconds",
+        "resumeAmount": 90,
+        "options": {},
+        "incomingAuthentication": "none"
+      },
+      "webhookId": "cuddler-single-original-video-wait"
+    },
+    {
+      "id": "has-callback-proof",
+      "name": "Has Callback Proof",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        -80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "proof",
+              "leftValue": "={{!!$json.body?.callbackWaitHandle && !!$json.body?.deliveryHandle}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "complete-original-wait",
+      "name": "Complete Original Wait",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackWait",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -160
+      ],
+      "parameters": {
+        "operation": "completeOriginalWait",
+        "resumeProof": "={{$json.body}}"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        },
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "respond-original-wait",
+      "name": "Respond Original Wait",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        -160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: $json.disposition } }}",
+        "options": {
+          "responseCode": "={{$json.statusCode}}"
+        }
+      }
+    },
+    {
+      "id": "read-original-video",
+      "name": "Read Original Video",
+      "type": "n8n-nodes-cuddler.cuddler",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        40
+      ],
+      "parameters": {
+        "resource": "video",
+        "operation": "pollPrepared",
+        "operationHandle": "={{$('Execute Original Video').first().json.operationHandle}}",
+        "requestBody": "",
+        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        }
+      }
+    },
+    {
+      "id": "stable-per-task-callback",
+      "name": "Stable Per Task Callback",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {},
+      "credentials": {
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "claim-verified-event",
+      "name": "Claim Verified Event",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackReceipt",
+      "typeVersion": 1,
+      "position": [
+        240,
+        500
+      ],
+      "parameters": {
+        "operation": "claimEvent",
+        "eventReceipt": "={{$json.eventReceipt}}"
+      },
+      "credentials": {
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "deliver-original-wait",
+      "name": "Deliver Original Wait",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackWait",
+      "typeVersion": 1,
+      "position": [
+        480,
+        420
+      ],
+      "parameters": {
+        "operation": "deliverOriginalWait",
+        "deliveryHandle": "={{$json.deliveryHandle}}"
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        },
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      }
+    },
+    {
+      "id": "respond-callback",
+      "name": "Respond Callback",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        720,
+        500
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: $json.disposition } }}",
+        "options": {
+          "responseCode": "={{$json.statusCode}}"
+        }
+      }
+    },
+    {
+      "id": "delivery-completed",
+      "name": "Delivery Completed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        420
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ack",
+              "leftValue": "={{$json.statusCode === 200}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "recover-original-event",
+      "name": "Recover Original Event",
+      "type": "n8n-nodes-cuddler.cuddlerTaskCallbackWait",
+      "typeVersion": 1,
+      "position": [
+        960,
+        580
+      ],
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        },
+        "cuddlerTaskCallbackApi": {
+          "id": "SELECT_EXISTING_CALLBACK_CREDENTIAL",
+          "name": "Select existing Cuddler callback API"
+        }
+      },
+      "parameters": {
+        "operation": "recoverOriginalEvent",
+        "deliveryHandle": "={{$('Claim Verified Event').first().json.deliveryHandle}}"
+      }
+    },
+    {
+      "id": "original-file-ready",
+      "name": "Original File Ready",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        40
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "succeeded",
+              "leftValue": "={{$json.terminal === true && $json.status === 'succeeded'}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "download-original-video",
+      "name": "Download Original Video",
+      "type": "n8n-nodes-cuddler.cuddler",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        -40
+      ],
+      "parameters": {
+        "resource": "video",
+        "operation": "downloadPreparedFile",
+        "operationHandle": "={{$('Execute Original Video').first().json.operationHandle}}",
+        "requestBody": "",
+        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID",
+        "outputBinaryProperty": "data",
+        "maxFileBytes": 20971520
+      },
+      "credentials": {
+        "cuddlerApi": {
+          "id": "SELECT_EXISTING_CUDDLER_CREDENTIAL",
+          "name": "Select existing Cuddler API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Callback Scope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Callback Scope": {
+      "main": [
+        [
+          {
+            "node": "Prepare Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Original Video": {
+      "main": [
+        [
+          {
+            "node": "Execute Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Original Video": {
+      "main": [
+        [
+          {
+            "node": "Register Original Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Register Original Wait": {
+      "main": [
+        [
+          {
+            "node": "First Original Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First Original Wait": {
+      "main": [
+        [
+          {
+            "node": "Original Single Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original Single Wait": {
+      "main": [
+        [
+          {
+            "node": "Has Callback Proof",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Callback Proof": {
+      "main": [
+        [
+          {
+            "node": "Complete Original Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Original Wait": {
+      "main": [
+        [
+          {
+            "node": "Respond Original Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Original Wait": {
+      "main": [
+        [
+          {
+            "node": "Read Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stable Per Task Callback": {
+      "main": [
+        [
+          {
+            "node": "Claim Verified Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Verified Event": {
+      "main": [
+        [
+          {
+            "node": "Deliver Original Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deliver Original Wait": {
+      "main": [
+        [
+          {
+            "node": "Delivery Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery Completed": {
+      "main": [
+        [
+          {
+            "node": "Respond Callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Recover Original Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recover Original Event": {
+      "main": [
+        [
+          {
+            "node": "Respond Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Original Video": {
+      "main": [
+        [
+          {
+            "node": "Original File Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Original File Ready": {
+      "main": [
+        [
+          {
+            "node": "Download Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}
