@@ -36,6 +36,65 @@
       }
     },
     {
+      "id": "configure-original-request",
+      "name": "Configure Original Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "request-field-0",
+              "name": "request.model",
+              "type": "string",
+              "value": "REPLACE_WITH_CATALOG_MODEL"
+            },
+            {
+              "id": "request-field-1",
+              "name": "request.prompt",
+              "type": "string",
+              "value": "REPLACE_WITH_VALIDATED_REQUEST"
+            },
+            {
+              "id": "request-field-2",
+              "name": "request.max_usd",
+              "type": "string",
+              "value": "REPLACE_WITH_APPROVED_MAX_USD"
+            },
+            {
+              "id": "request-field-3",
+              "name": "request.webhook_url",
+              "type": "string",
+              "value": "={{$json.callbackUrl}}"
+            },
+            {
+              "id": "request-field-4",
+              "name": "request.metadata.cuddler_callback_scope",
+              "type": "string",
+              "value": "={{$json.callbackScope}}"
+            },
+            {
+              "id": "request-field-5",
+              "name": "businessBatchId",
+              "type": "string",
+              "value": "REPLACE_WITH_STABLE_BUSINESS_BATCH"
+            },
+            {
+              "id": "request-field-6",
+              "name": "stableItemId",
+              "type": "string",
+              "value": "REPLACE_WITH_STABLE_ITEM_ID"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
       "id": "prepare-original-video",
       "name": "Prepare Original Video",
       "type": "n8n-nodes-cuddler.cuddler",
@@ -47,9 +106,9 @@
       "parameters": {
         "resource": "video",
         "operation": "prepareMedia",
-        "businessBatchId": "REPLACE_WITH_STABLE_BUSINESS_BATCH",
-        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID",
-        "requestBody": "={{ { model: 'REPLACE_WITH_CATALOG_MODEL', prompt: 'REPLACE_WITH_VALIDATED_REQUEST', max_usd: 'REPLACE_WITH_APPROVED_MAX_USD', webhook_url: $json.callbackUrl, metadata: { cuddler_callback_scope: $json.callbackScope } } }}"
+        "businessBatchId": "={{$json.businessBatchId}}",
+        "stableItemId": "={{$json.stableItemId}}",
+        "requestBody": "={{$json.request}}"
       },
       "credentials": {
         "cuddlerApi": {
@@ -72,7 +131,7 @@
         "operation": "executePrepared",
         "operationHandle": "={{$json.operationHandle}}",
         "requestBody": "",
-        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID"
+        "stableItemId": "={{$json.stableItemId}}"
       },
       "credentials": {
         "cuddlerApi": {
@@ -231,7 +290,7 @@
       ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: $json.disposition } }}",
+        "responseBody": "{\"status\":\"{{$json.disposition}}\"}",
         "options": {
           "responseCode": "={{$json.statusCode}}"
         }
@@ -251,7 +310,7 @@
         "operation": "pollPrepared",
         "operationHandle": "={{$('Execute Original Video').first().json.operationHandle}}",
         "requestBody": "",
-        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID"
+        "stableItemId": "={{$('Execute Original Video').first().json.stableItemId}}"
       },
       "credentials": {
         "cuddlerApi": {
@@ -332,7 +391,7 @@
       ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: $json.disposition } }}",
+        "responseBody": "{\"status\":\"{{$json.disposition}}\"}",
         "options": {
           "responseCode": "={{$json.statusCode}}"
         }
@@ -444,7 +503,7 @@
         "operation": "downloadPreparedFile",
         "operationHandle": "={{$('Execute Original Video').first().json.operationHandle}}",
         "requestBody": "",
-        "stableItemId": "REPLACE_WITH_STABLE_ITEM_ID",
+        "stableItemId": "={{$('Execute Original Video').first().json.stableItemId}}",
         "outputBinaryProperty": "data",
         "maxFileBytes": 20971520
       },
@@ -472,7 +531,7 @@
       "main": [
         [
           {
-            "node": "Prepare Original Video",
+            "node": "Configure Original Request",
             "type": "main",
             "index": 0
           }
@@ -671,6 +730,17 @@
           }
         ],
         []
+      ]
+    },
+    "Configure Original Request": {
+      "main": [
+        [
+          {
+            "node": "Prepare Original Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
