@@ -10,7 +10,7 @@ Real n8n 2.43.7 free execution 121 successfully traversed Callback Scope → Con
 
 ## Frozen shared contract observation
 
-Use the specification, vectors, and checker together from corrected Cuddler candidate commit `e8d191a1d6963701c436e94874bdcd6420c5a196` (pending shared-repository review/merge). The historical frozen baseline is `2ac842fe0ae242f25a1fec3f97df4a048bdad263`. Do not point the runner at unreviewed files: the checker module is imported as executable code.
+Use the specification, vectors, and checker together from merged Cuddler commit `1e7a1bf344e566cff826145046f50654ff759ce9` ([shared correction PR #6690](https://github.com/CuddlerAI/Cuddler/pull/6690)). The historical frozen baseline is `2ac842fe0ae242f25a1fec3f97df4a048bdad263`. Do not point the runner at unreviewed files: the checker module is imported as executable code.
 
 ```sh
 npm run build
@@ -26,12 +26,12 @@ The fixture's pre-existing-job and upload cases seed state before starting obser
 
 All 84 scenarios execute their candidate assertions and pass the corrected checker. The historical frozen checker rejected the full report: video/speech/music `queued-cancel` expected exactly one query, while the candidate performs `GET queued → POST cancel → GET canceled` across two explicit cancellation operations.
 
-The correction permits 1–2 queries only in those three scenarios. Other query counts remain exact; two canceled results, one original job, one hold/release and zero upstream submissions/captures remain required. The observer additionally asserts exactly one cancel POST and one server job. The shared checker has 15 passing regressions, including a third/zero query, a replacement job, extra creation, duplicate release/cancel result, and extra provider submission. No extra owner-confirmation step is needed; the versioned correction still requires normal code review and merge.
+The correction permits 1–2 queries only in those three scenarios. Other query counts remain exact; two canceled results, one original job, one hold/release and zero upstream submissions/captures remain required. The observer additionally asserts exactly one cancel POST and one server job. The shared checker has 15 passing regressions, including a third/zero query, a replacement job, extra creation, duplicate release/cancel result, and extra provider submission. The versioned shared correction passed its required CI and was merged after review. Its three normative files are byte-identical to reviewed candidate `e8d191a1d6963701c436e94874bdcd6420c5a196`.
 
-Retain the old failed report and regenerate observations against all three normative files from the corrected commit, with its new fixture digest. Passing the corrected candidate does not claim that the old frozen checker passed, or that an unmerged baseline is already the shared default.
+Retain the old failed report and regenerate observations against all three normative files from the corrected commit, with its new fixture digest. Passing the corrected baseline does not claim that the old frozen checker passed.
 
 ## Existing live evidence and boundaries
 
 The unchanged runtime candidate `57da9ae9104ac7d04f376b345e20fad760067a7e` ran one authorized Seedance 2.0 mini video. A genuine signed HTTPS callback resumed the original Wait; exact-event redelivery was deduplicated. A local stable-item placeholder omission was corrected and native retry 101 of execution 30 delivered a 646,871-byte MP4. The platform ledger showed one $0.099456 capture, release of the unused hold, $4.900544 balance and zero held. This continuation creates no additional paid generation.
 
-Controlled host evidence and exact task IDs stay with the acceptance operator. Do not copy raw execution JSON, handles, signed URLs or credentials into this repository. Provider-reported cost is not an independent supplier-invoice audit. Actual Cloud installation and npm/Creator review belong to #6455; they are not grounds to claim this local host was Cloud. Keep the issue open until the shared correction and final n8n candidate finish review and integration. No npm publication or actual n8n Cloud acceptance is claimed.
+Controlled host evidence and exact task IDs stay with the acceptance operator. Do not copy raw execution JSON, handles, signed URLs or credentials into this repository. Provider-reported cost is not an independent supplier-invoice audit. Actual Cloud installation and npm/Creator review belong to #6455; they are not grounds to claim this local host was Cloud. Close #6454 only after the final n8n candidate finishes review and integration, retaining these evidence boundaries. No npm publication or actual n8n Cloud acceptance is claimed.
