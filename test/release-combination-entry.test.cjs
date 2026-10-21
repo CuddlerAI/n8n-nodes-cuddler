@@ -65,3 +65,92 @@ test('new composite export does not activate a default node from workflow parame
  const c=context(b,{resource:'upload',operation:'executePreparedUpload',operationHandle:p.json.operationHandle,enableNative:true,trustedTransportFactory:'createNativeCuddlerHttpTransports',trustedAssetHosts:[HOST]});c.helpers.httpRequest=()=>assert.fail('workflow fields cannot activate transport');
  await assert.rejects(()=>new Cuddler().execute.call(c),/UPLOAD_RECOVERY_FAILED/);
 });
+
+const releaseGuard = import('../scripts/release-guard.mjs');
+const releaseHead = 'a'.repeat(40);
+function releaseFixture() {
+ return {
+  environment: {
+   GITHUB_ACTIONS: 'true',
+   GITHUB_EVENT_NAME: 'workflow_dispatch',
+   GITHUB_REPOSITORY: 'CuddlerAI/n8n-nodes-cuddler',
+   GITHUB_REF: 'refs/heads/main',
+   GITHUB_WORKFLOW_REF: 'CuddlerAI/n8n-nodes-cuddler/.github/workflows/publish.yml@refs/heads/main',
+   GITHUB_SHA: releaseHead,
+   RELEASE_REPOSITORY_VISIBILITY: 'public',
+   RELEASE_RUNNER_ENVIRONMENT: 'github-hosted',
+   RELEASE_EXPECTED_SHA: releaseHead,
+   RELEASE_EXPECTED_VERSION: '0.1.0',
+   RELEASE_ACCEPTANCE_URL: 'https://github.com/CuddlerAI/Cuddler/issues/6454#issuecomment-123',
+   RELEASE_ACCEPTANCE_SHA256: 'b'.repeat(64),
+  },
+  manifest: structuredClone(require('../package.json')),
+  head: releaseHead,
+ };
+}
+
+test('release guard accepts the reviewed canonical public main context', async () => {
+ const { validateReleaseContext } = await releaseGuard;
+ const { environment, manifest, head } = releaseFixture();
+ assert.doesNotThrow(() => validateReleaseContext(environment, manifest, head));
+});
+
+for (const [title, differences] of [
+ ['fork or private source', [['GITHUB_REPOSITORY', 'ChenShan-2026/n8n-nodes-cuddler'], ['RELEASE_REPOSITORY_VISIBILITY', 'private']]],
+ ['non-main ref or different workflow', [['GITHUB_REF', 'refs/tags/v0.1.0'], ['GITHUB_WORKFLOW_REF', 'other/publish.yml@refs/heads/main']]],
+ ['automatic event or non-Actions execution', [['GITHUB_EVENT_NAME', 'push'], ['GITHUB_EVENT_NAME', 'pull_request'], ['GITHUB_ACTIONS', 'false']]],
+ ['malformed or different dispatch SHA', [['RELEASE_EXPECTED_SHA', 'main'], ['RELEASE_EXPECTED_SHA', 'A'.repeat(40)], ['GITHUB_SHA', 'c'.repeat(40)]]],
+ ['different version or self-hosted runner', [['RELEASE_EXPECTED_VERSION', '0.2.0'], ['RELEASE_RUNNER_ENVIRONMENT', 'self-hosted']]],
+ ['missing or unsafe acceptance evidence', [['RELEASE_ACCEPTANCE_URL', ''], ['RELEASE_ACCEPTANCE_URL', 'https://example.test/receipt'], ['RELEASE_ACCEPTANCE_URL', 'https://github.com/CuddlerAI/Cuddler/issues/6454?secret=x'], ['RELEASE_ACCEPTANCE_SHA256', '']]],
+ ['npm token or password fallback', [['NODE_AUTH_TOKEN', 'synthetic'], ['NPM_TOKEN', 'synthetic'], ['NPM_CONFIG__AUTH', 'synthetic'], ['NPM_CONFIG_PASSWORD', 'synthetic']]],
+]) {
+ test(`release guard rejects ${title}`, async () => {
+  const { validateReleaseContext } = await releaseGuard;
+  for (const [field, value] of differences) {
+   const { environment, manifest, head } = releaseFixture();
+   assert.throws(() => validateReleaseContext({ ...environment, [field]: value }, manifest, head));
+  }
+ });
+}
+
+test('release guard rejects a checkout different from the reviewed dispatch', async () => {
+ const { validateReleaseContext } = await releaseGuard;
+ const { environment, manifest } = releaseFixture();
+ assert.throws(() => validateReleaseContext(environment, manifest, 'c'.repeat(40)));
+});
+
+test('release guard rejects package identity, private access and disabled provenance', async () => {
+ const { validateReleaseContext } = await releaseGuard;
+ for (const changes of [
+  { name: 'another-package' },
+  { private: true },
+  { repository: { url: 'git+https://github.com/other/package.git' } },
+  { publishConfig: { access: 'restricted' } },
+  { publishConfig: { access: 'public', provenance: false } },
+ ]) {
+  const { environment, manifest, head } = releaseFixture();
+  assert.throws(() => validateReleaseContext(environment, { ...manifest, ...changes }, head));
+ }
+});
+
+test('release guard rejects missing, unprotected or empty-reviewer environments', async () => {
+ const { validateReleaseEnvironment } = await releaseGuard;
+ for (const environment of [
+  {},
+  { name: 'other' },
+  { name: 'npm-release', protection_rules: [] },
+  { name: 'npm-release', protection_rules: [{ type: 'wait_timer', wait_timer: 30 }] },
+  { name: 'npm-release', protection_rules: [{ type: 'required_reviewers', reviewers: [] }] },
+  { name: 'npm-release', protection_rules: [{ type: 'required_reviewers', reviewers: [{ type: 'User', reviewer: { id: 0 } }] }] },
+ ]) assert.throws(() => validateReleaseEnvironment(environment));
+});
+
+test('release guard accepts configured user or team required reviewers', async () => {
+ const { validateReleaseEnvironment } = await releaseGuard;
+ for (const type of ['User', 'Team']) {
+  assert.doesNotThrow(() => validateReleaseEnvironment({
+   name: 'npm-release',
+   protection_rules: [{ type: 'required_reviewers', reviewers: [{ type, reviewer: { id: 1 } }] }],
+  }));
+ }
+});

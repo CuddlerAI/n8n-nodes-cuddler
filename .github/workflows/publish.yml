@@ -1,0 +1,96 @@
+name: Publish npm package
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Reviewed 40-character main commit SHA
+        required: true
+        type: string
+      expected_version:
+        description: Reviewed package.json version
+        required: true
+        type: string
+      acceptance_url:
+        description: GitHub issue/comment or Actions run with redacted real acceptance evidence
+        required: true
+        type: string
+      acceptance_sha256:
+        description: SHA-256 of the redacted acceptance receipt reviewed by the release reviewer
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'CuddlerAI/n8n-nodes-cuddler' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-release
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      RELEASE_EXPECTED_SHA: ${{ inputs.expected_sha }}
+      RELEASE_EXPECTED_VERSION: ${{ inputs.expected_version }}
+      RELEASE_ACCEPTANCE_URL: ${{ inputs.acceptance_url }}
+      RELEASE_ACCEPTANCE_SHA256: ${{ inputs.acceptance_sha256 }}
+      RELEASE_REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+    steps:
+      - name: Check out the dispatch commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Use empty npm configuration
+        env:
+          RELEASE_RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: |
+          : > "$RUNNER_TEMP/cuddler-release-user.npmrc"
+          : > "$RUNNER_TEMP/cuddler-release-global.npmrc"
+          printf '%s\n' "RELEASE_RUNNER_ENVIRONMENT=$RELEASE_RUNNER_ENVIRONMENT" "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/cuddler-release-user.npmrc" "NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/cuddler-release-global.npmrc" >> "$GITHUB_ENV"
+
+      - name: Check release identity and protected reviewers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-guard.mjs
+
+      - name: Set up the supported npm CLI
+        run: npm install --global --ignore-scripts --registry=https://registry.npmjs.org npm@11.15.0
+
+      - name: Install locked development dependencies
+        run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Run local contract tests
+        run: npm test
+
+      - name: Audit the actual npm package
+        run: npm run check:package
+
+      - name: Recheck the accepted main commit and reviewer protection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-guard.mjs --publishing
+
+      - name: Publish through the configured trusted publisher
+        run: npm publish --ignore-scripts --access=public --provenance --registry=https://registry.npmjs.org

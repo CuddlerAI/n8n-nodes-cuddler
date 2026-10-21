@@ -111,6 +111,8 @@ The source archive and local checks do not establish real callback reachability,
 
 ## Development and release
 
-Pull requests and pushes to `main` run local build, lint, tests and an audit of an actual npm archive. These checks use synthetic HTTP/storage boundaries; they do not call a provider or validate a real organization job. Package verification uses the system BSD/GNU `tar` command.
+Pull requests, becoming ready for review, and pushes to `main` or `codex/initial-community-nodes` trigger build, lint, tests and an audit of an actual npm archive when GitHub Actions permits the run. The feature-branch trigger permits hosted checks in the contributor fork; record that result separately from canonical repository checks. These checks use synthetic HTTP/storage boundaries; they do not call a provider or validate a real organization job. Package verification uses the system BSD/GNU `tar` command.
 
-No automatic publishing is configured. See [the release checklist](docs/release.md) for final package identity, npm maintainer/provenance, real workflow acceptance and Creator/Cloud checks. The repository owner reviews and merges contributions; a merged PR does not publish a package.
+Publication requires an explicit manual run of `publish.yml` from canonical `main`, a reviewed SHA/version and redacted real-acceptance receipt, a configured `npm-release` reviewer gate, and an existing authorized npm trusted publisher. The guard refuses forks, unprotected environments, moved commits, absent package control and npm token fallback. No push, PR or tag publishes automatically. Adding this workflow does not configure or authorize a publisher.
+
+See [the release checklist](docs/release.md) for first-package bootstrap, publisher configuration, evidence review and the separate npm, Creator submission/approval and actual Cloud installation checks. The repository owner reviews and merges contributions; a merged PR does not publish a package.
