@@ -1,0 +1,57 @@
+{
+  "name": "n8n-nodes-cuddler",
+  "version": "0.1.0",
+  "description": "Cuddler media generation, original-job recovery, binary files and callbacks for n8n",
+  "license": "MIT",
+  "author": {
+    "name": "CuddlerAI",
+    "email": "contact@cuddler.ai"
+  },
+  "homepage": "https://cuddler.ai/docs/api",
+  "keywords": [
+    "n8n-community-node-package"
+  ],
+  "scripts": {
+    "build": "n8n-node build",
+    "lint": "n8n-node lint",
+    "test": "node --test test/*.test.cjs",
+    "check:package": "node scripts/verify-package.mjs"
+  },
+  "files": [
+    "dist/nodes",
+    "dist/credentials"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/CuddlerApi.credentials.js",
+      "dist/credentials/CuddlerTaskCallbackApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Cuddler/Cuddler.node.js",
+      "dist/nodes/CuddlerTaskCallback/CuddlerTaskCallbackTrigger.node.js",
+      "dist/nodes/CuddlerTaskCallback/CuddlerTaskCallbackReceipt.node.js",
+      "dist/nodes/CuddlerTaskCallback/CuddlerTaskCallbackWait.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "0.53.2",
+    "eslint": "9.29.0",
+    "n8n-workflow": "2.43.5",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CuddlerAI/n8n-nodes-cuddler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CuddlerAI/n8n-nodes-cuddler/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
