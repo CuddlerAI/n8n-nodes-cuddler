@@ -142,7 +142,9 @@ async function mediaCase(c) {
  }
  const [[created]]=await execute(p);id=created.json.jobId;
  if(d.cancel){
+  let cancelPosts=0;
   const preparedCancel={transport:{getOriginal:async r=>{c.emit({type:'query',job_id:r.jobId});return {statusCode:200,job:{object:d.media,...server.get(id)}}},cancelQueued:async r=>{
+   cancelPosts++;assert.equal(cancelPosts,1,'repeated cancellation must not send another POST');
    assert.equal(r.jobId,id);const j=server.get(id);if(j.status!=='canceled'){j.status='canceled';c.emit({type:'ledger',action:'release',job_id:id,amount_micros:1000000});}return {statusCode:200,job:{object:d.media,...j}};
   }}};
   for(let i=0;i<2;i++) {
@@ -150,6 +152,7 @@ async function mediaCase(c) {
    const [[out]]=await als.run(c,()=>new Cuddler({preparedCancel}).execute.call(ctx));
    assert.equal(out.json.status,'canceled');c.emit({type:'cancel',job_id:id,status:out.json.status});
   }
+  assert.equal(cancelPosts,1);assert.equal(server.size,1);
   return c.result('canceled');
  }
  await c.invoke(b,{...p,operation:'readPrepared'});return c.result('failed');
