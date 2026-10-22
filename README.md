@@ -2,13 +2,15 @@
 
 Source for Cuddler media operations, original-job recovery, binary files, uploads, and per-task callbacks in n8n. Licensed under MIT.
 
-This repository prepares `n8n-nodes-cuddler` version `0.1.0`. It is not published to npm yet. Real API/provider, billing, installation, and n8n Cloud acceptance of this revision remain pending; local tests do not establish release readiness.
+[`n8n-nodes-cuddler@0.1.0`](https://www.npmjs.com/package/n8n-nodes-cuddler/v/0.1.0) was published on October 22, 2026 through [the protected GitHub Actions release](https://github.com/CuddlerAI/n8n-nodes-cuddler/actions/runs/39775616129), with npm provenance for commit `b0baed12afec441d3f87b912703eb716ea8b512f`. Registry signatures, the official n8n scanner, clean installation and free original-job/file checks passed; see the [release acceptance receipt](https://github.com/CuddlerAI/Cuddler/issues/6455#issuecomment-6340616676). Real video/callback acceptance was completed separately in [the technical receipt](https://github.com/CuddlerAI/Cuddler/issues/6454#issuecomment-6313422437).
+
+**n8n Creator verification and actual n8n Cloud installation remain pending.** A public npm package and a successful scanner report do not mean that n8n has verified the integration. Current documentation may include post-release status updates; the immutable 0.1.0 source is the provenance-linked commit above.
 
 ## Compatibility and installation
 
 The integration targets n8n 2.43.7. It uses n8n's native Data Tables, native Wait, and managed binary data. No external runtime dependency is bundled. Compatibility with other n8n versions requires separate verification.
 
-The npm package is not available yet. After publication, self-hosted users will install `n8n-nodes-cuddler` through n8n community nodes. Cloud installation requires n8n verification first. For source development, use Node.js 22 or 24 and npm, then run:
+For self-hosted installation, open **Settings → Community nodes → Install**, enter `n8n-nodes-cuddler@0.1.0`, review the community-node installation notice, and install. Version 0.1.0 was installed and tested on n8n 2.43.7. Cloud installation requires n8n verification first and is not yet available as a verified integration. For source development, use Node.js 22 or 24 and npm, then run:
 
 ```sh
 npm ci --ignore-scripts
@@ -103,7 +105,7 @@ The callback event projection retains only event ID/type/time, media ID/status, 
 
 n8n still keeps its own execution-control metadata and may parse authorized request bytes in host memory. Configure host access, execution retention, logs, and request instrumentation appropriately. This source does not claim zero tokens in host state, zero parsing, or exactly-once arbitrary workflow effects.
 
-The source archive and local checks do not establish real callback reachability, provider settlement, stock-host behavior of this exact package, public npm publication, provenance, Creator verification, or Cloud installation. Those results must be recorded against the final package and source identity before calling a release supported.
+The linked technical receipt covers one real video task, signed HTTPS callback/original-Wait recovery and settlement. The release receipt covers the official 0.1.0 registry package, provenance, self-hosted installation and free original-job/file checks. Other media creation paths have synthetic coverage, not live generation evidence. Creator verification and actual Cloud execution remain pending; do not infer either from these receipts.
 
 ## License
 

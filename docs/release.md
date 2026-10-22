@@ -2,6 +2,13 @@
 
 The candidate is `n8n-nodes-cuddler` version `0.1.0`, MIT, from [CuddlerAI/n8n-nodes-cuddler](https://github.com/CuddlerAI/n8n-nodes-cuddler). A PR, local tests, hosted CI, real workflow acceptance, npm publication, Creator approval and an actual Cloud execution are separate evidence layers. This checklist and `publish.yml` prepare a guarded release; they do not establish that any pending layer has passed.
 
+## Recorded 0.1.0 release
+
+- Published on October 22, 2026 from commit `b0baed12afec441d3f87b912703eb716ea8b512f`: [successful protected run](https://github.com/CuddlerAI/n8n-nodes-cuddler/actions/runs/39775616129).
+- [Registry package](https://www.npmjs.com/package/n8n-nodes-cuddler/v/0.1.0) and [sanitized installation/free-operation receipt](https://github.com/CuddlerAI/Cuddler/issues/6455#issuecomment-6340616676): signature and attestation verified, official scanner passed, four nodes and two credentials loaded on self-hosted n8n 2.43.7, original file digest matched, no new paid tasks.
+- Creator verification and actual Cloud installation are still pending. Track their independent results in [#6455](https://github.com/CuddlerAI/Cuddler/issues/6455).
+- Do not dispatch 0.1.0 again: that version already exists. The checklist below describes the reusable protected release procedure; a later release needs its own unused version, reviewed source and matching evidence.
+
 ## Validate the exact candidate
 
 - Review the final canonical main SHA, package name/version, repository URL, license and retained n8n starter attribution. Record canonical hosted CI separately from a fork run. CI also supports pushes to the initial contribution branch and PR `ready_for_review`; GitHub may still require repository configuration or fork-run approval.
